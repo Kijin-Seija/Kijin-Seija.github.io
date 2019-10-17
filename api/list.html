@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>catalyst-list组件文档 | Catalyst</title>
+    <meta name="description" content="">
+    
+    
+    <link rel="preload" href="/assets/css/0.styles.7cb111f8.css" as="style"><link rel="preload" href="/assets/js/app.69c5a9bd.js" as="script"><link rel="preload" href="/assets/js/2.8a6d69cc.js" as="script"><link rel="preload" href="/assets/js/7.52a55036.js" as="script"><link rel="prefetch" href="/assets/js/10.e39b5b7c.js"><link rel="prefetch" href="/assets/js/11.87e99005.js"><link rel="prefetch" href="/assets/js/12.27179ec6.js"><link rel="prefetch" href="/assets/js/13.6dce2fdc.js"><link rel="prefetch" href="/assets/js/14.a8f6b7c3.js"><link rel="prefetch" href="/assets/js/15.c73b6957.js"><link rel="prefetch" href="/assets/js/16.c94bc0fb.js"><link rel="prefetch" href="/assets/js/17.a4a27b5e.js"><link rel="prefetch" href="/assets/js/18.be1754c8.js"><link rel="prefetch" href="/assets/js/19.1fc63146.js"><link rel="prefetch" href="/assets/js/3.29097d72.js"><link rel="prefetch" href="/assets/js/4.a944c221.js"><link rel="prefetch" href="/assets/js/5.998e4499.js"><link rel="prefetch" href="/assets/js/6.2e28d381.js"><link rel="prefetch" href="/assets/js/8.94d99c54.js"><link rel="prefetch" href="/assets/js/9.acb42300.js">
+    <link rel="stylesheet" href="/assets/css/0.styles.7cb111f8.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="/" class="home-link router-link-active"><!----> <span class="site-name">Catalyst</span></a> <div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <!----></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><!---->  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>起步</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/introduction.html" class="sidebar-link">Catalyst是什么？</a></li><li><a href="/install.html" class="sidebar-link">安装</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>集成指南</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/integration/guide.html" class="sidebar-link">介绍</a></li><li><a href="/integration/list.html" class="sidebar-link">集成列表页</a></li></ul></section></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading"><span>配置指南</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><section class="sidebar-group is-sub-group depth-1"><p class="sidebar-heading open"><span>列表页</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/catalyst-list/guide.html" class="sidebar-link">介绍</a></li><li><a href="/catalyst-list/getting-started.html" class="sidebar-link">快速上手</a></li><li><a href="/catalyst-list/table.html" class="sidebar-link">列表数据渲染</a></li><li><a href="/catalyst-list/search-filter.html" class="sidebar-link">搜索与筛选数据</a></li><li><a href="/catalyst-list/action.html" class="sidebar-link">用户操作</a></li><li><a href="/catalyst-list/auth.html" class="sidebar-link">权限管理</a></li></ul></section></li></ul></section></li><li><a href="/extend/guide.html" class="sidebar-link">扩展指南</a></li><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>API Reference</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/api/sdk.html" class="sidebar-link">@xes/dh-catalyst</a></li><li><a href="/api/list.html" class="active sidebar-link">catalyst-list组件文档</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/api/list.html#用法示例" class="sidebar-link">用法示例</a></li><li class="sidebar-sub-header"><a href="/api/list.html#组件属性" class="sidebar-link">组件属性</a></li><li class="sidebar-sub-header"><a href="/api/list.html#组件事件" class="sidebar-link">组件事件</a></li><li class="sidebar-sub-header"><a href="/api/list.html#插槽" class="sidebar-link">插槽</a></li><li class="sidebar-sub-header"><a href="/api/list.html#依赖注入" class="sidebar-link">依赖注入</a></li></ul></li></ul></section></li></ul> </aside> <main class="page"> <div class="theme-default-content content__default"><h1 id="catalyst-list组件文档"><a href="#catalyst-list组件文档" aria-hidden="true" class="header-anchor">#</a> catalyst-list组件文档</h1> <blockquote><p>catalyst-list组件主要功能是将json格式的页面配置数据渲染成列表页面</p></blockquote> <h2 id="用法示例"><a href="#用法示例" aria-hidden="true" class="header-anchor">#</a> 用法示例</h2> <div class="language-html extra-class"><pre class="language-html"><code><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>catalyst-list</span>
+    <span class="token attr-name">:page-title</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>pageTitle<span class="token punctuation">&quot;</span></span>
+    <span class="token attr-name">:business-config</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>businessConfig<span class="token punctuation">&quot;</span></span>
+    <span class="token attr-name">:initiate-condition</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>routeQuery<span class="token punctuation">&quot;</span></span>
+    <span class="token attr-name">@dialogShow</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>handleDialogShow<span class="token punctuation">&quot;</span></span>
+    <span class="token attr-name">@dockerShow</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>handleDockerShow<span class="token punctuation">&quot;</span></span>
+  <span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">#dialog</span><span class="token punctuation">&gt;</span></span>
+      ......
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">#docker</span><span class="token punctuation">&gt;</span></span>
+      ......
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>catalyst-list</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">&gt;</span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span><span class="token punctuation">&gt;</span></span><span class="token script"><span class="token language-javascript">
+<span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token punctuation">{</span>
+  <span class="token function">data</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+      pageTitle<span class="token punctuation">:</span> <span class="token string">''</span><span class="token punctuation">,</span>
+      businessConfig<span class="token punctuation">:</span> <span class="token keyword">null</span><span class="token punctuation">,</span>
+      routeQuery<span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>，
+  <span class="token function">provide</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> <span class="token punctuation">{</span>
+      <span class="token function-variable function">$mpMatchKeyword</span><span class="token punctuation">:</span> <span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token parameter">url<span class="token punctuation">,</span> params</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+        <span class="token operator">...</span><span class="token operator">...</span>
+        <span class="token keyword">return</span> <span class="token punctuation">[</span>
+          <span class="token punctuation">{</span>
+            id<span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+            value<span class="token punctuation">:</span> <span class="token string">'名称'</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span><span class="token punctuation">{</span>
+            id<span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+            value<span class="token punctuation">:</span> <span class="token string">'名称'</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span><span class="token punctuation">{</span>
+            id<span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
+            value<span class="token punctuation">:</span> <span class="token string">'名称'</span>
+          <span class="token punctuation">}</span>
+        <span class="token punctuation">]</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token function-variable function">$mpSearch</span><span class="token punctuation">:</span> <span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token parameter">url<span class="token punctuation">,</span> params</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+        <span class="token operator">...</span><span class="token operator">...</span>
+        <span class="token keyword">return</span> <span class="token punctuation">{</span>
+          list<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+          total<span class="token punctuation">:</span> <span class="token number">50</span><span class="token punctuation">,</span>
+          currentPage<span class="token punctuation">:</span> <span class="token number">2</span>
+        <span class="token punctuation">}</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token function-variable function">$mpDoAjaxAction</span><span class="token punctuation">:</span> <span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token parameter">url<span class="token punctuation">,</span> params</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+        <span class="token operator">...</span><span class="token operator">...</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token function-variable function">$mpGetOptions</span><span class="token punctuation">:</span> <span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token parameter">optionsId</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+        <span class="token operator">...</span><span class="token operator">...</span>
+        <span class="token keyword">return</span> <span class="token punctuation">[</span>
+          <span class="token punctuation">{</span>
+            label<span class="token punctuation">:</span> <span class="token string">&quot;合格&quot;</span><span class="token punctuation">,</span>
+            value<span class="token punctuation">:</span> <span class="token string">&quot;1&quot;</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>
+            label<span class="token punctuation">:</span> <span class="token string">&quot;良好&quot;</span><span class="token punctuation">,</span>
+            value<span class="token punctuation">:</span> <span class="token string">&quot;2&quot;</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+          <span class="token punctuation">{</span>
+            label<span class="token punctuation">:</span> <span class="token string">&quot;优秀&quot;</span><span class="token punctuation">,</span>
+            value<span class="token punctuation">:</span> <span class="token string">&quot;3&quot;</span>
+          <span class="token punctuation">}</span>
+        <span class="token punctuation">]</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  methods<span class="token punctuation">:</span> <span class="token punctuation">{</span>
+    <span class="token function">handleDialogShow</span><span class="token punctuation">(</span><span class="token parameter">arg</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      arg<span class="token punctuation">.</span>uri<span class="token punctuation">;</span>
+      arg<span class="token punctuation">.</span><span class="token function">confirm</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      arg<span class="token punctuation">.</span><span class="token function">cancel</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token function">handleDockerShow</span><span class="token punctuation">(</span><span class="token parameter">arg</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">&gt;</span></span>
+</code></pre></div><hr> <h2 id="组件属性"><a href="#组件属性" aria-hidden="true" class="header-anchor">#</a> 组件属性</h2> <table><thead><tr><th>名称</th> <th>类型</th> <th>必需</th> <th>默认值</th> <th>描述</th></tr></thead> <tbody><tr><td>business-config</td> <td>Object</td> <td>true</td> <td></td> <td>json页面配置数据</td></tr> <tr><td>page-title</td> <td>String</td> <td>false</td> <td>''</td> <td>页面标题</td></tr> <tr><td>initiate-condition</td> <td>Object</td> <td>false</td> <td>{}</td> <td>初始的搜索条件</td></tr></tbody></table> <hr> <h2 id="组件事件"><a href="#组件事件" aria-hidden="true" class="header-anchor">#</a> 组件事件</h2> <h3 id="dialogshow"><a href="#dialogshow" aria-hidden="true" class="header-anchor">#</a> dialogShow</h3> <blockquote><p>居中弹层显示事件</p></blockquote> <h3 id="dockershow"><a href="#dockershow" aria-hidden="true" class="header-anchor">#</a> dockerShow</h3> <blockquote><p>右侧滑层显示事件</p></blockquote> <h3 id="事件参数"><a href="#事件参数" aria-hidden="true" class="header-anchor">#</a> 事件参数</h3> <blockquote><p>Catalyst设计理念建议开发者使用uri(统一资源定位符)来管理vue组件资源，通过uri定位到某个vue组件</p></blockquote> <table><thead><tr><th>名称</th> <th>类型</th> <th>描述</th></tr></thead> <tbody><tr><td>uri</td> <td>String</td> <td>弹层或滑层要显示内容的资源定位符uri</td></tr> <tr><td>confirm</td> <td>function(): void</td> <td>触发弹层或滑层的确认处理，关闭弹层并重新刷新列表</td></tr> <tr><td>cancel</td> <td>function(): void</td> <td>触发弹层或滑层的取消处理，关闭弹层</td></tr></tbody></table> <hr> <h2 id="插槽"><a href="#插槽" aria-hidden="true" class="header-anchor">#</a> 插槽</h2> <h3 id="dialog"><a href="#dialog" aria-hidden="true" class="header-anchor">#</a> dialog</h3> <blockquote><p>dialog具名插槽用来显示居中弹层中的渲染内容</p></blockquote> <h3 id="docker"><a href="#docker" aria-hidden="true" class="header-anchor">#</a> docker</h3> <blockquote><p>docker具名插槽用来显示右侧滑层中的渲染内容</p></blockquote> <hr> <h2 id="依赖注入"><a href="#依赖注入" aria-hidden="true" class="header-anchor">#</a> 依赖注入</h2> <blockquote><p>catalyst-list组件一些具体逻辑功能是不适合抽象成通用逻辑的，例如：不同的系统可能使用不同的ajax请求库。因此这部分逻辑功能catalyst暴露出一些待注入的接口，由第三方引用catalyst-list组件的页面来注入实现逻辑。主要包括以下几个</p></blockquote> <table><thead><tr><th>方法名称</th> <th>方法签名</th> <th>必需</th> <th>描述</th></tr></thead> <tbody><tr><td>$mpMatchKeyword</td> <td>async function(uri: String, params: Object): Array[{id: String|Number, value: String}]</td> <td>false</td> <td>输入列表页关键字时，向后端发起模糊匹配的调用请求</td></tr> <tr><td>$mpSearch</td> <td>async function(uri: String, params: Object): {list: Array, total: Number, currentPage: Number}</td> <td>true</td> <td>列表页搜索逻辑，list中的数据项必须定义entity_id字段</td></tr> <tr><td>$mpDoAjaxAction</td> <td>async function(uri: String, params: Object): void</td> <td>false</td> <td>实现列表页操作区发起的异步操作逻辑，当页面配置了异步操作的交互按钮时，必须要实现此接口</td></tr> <tr><td>$mpGetOptions</td> <td>async function(optionsId: String): Array[{label: String, value: String}]</td> <td>false</td> <td>根据备选项组ID获取备选项数据，当页面的下拉框、复选框等配置了options_id字段时，必须要实现此接口，用来提供备选项</td></tr></tbody></table> <h3 id="mpsearch方法说明"><a href="#mpsearch方法说明" aria-hidden="true" class="header-anchor">#</a> $mpSearch方法说明</h3> <ul><li><p>参数说明</p> <table><thead><tr><th>名称</th> <th>类型</th> <th>必需</th> <th>默认值</th> <th>描述</th></tr></thead> <tbody><tr><td>uri</td> <td>String</td> <td>true</td> <td></td> <td>在页面配置数据中配置好的搜索接口地址</td></tr> <tr><td>params</td> <td>Object</td> <td>true</td> <td></td> <td>搜索参数，包含页面上选择的筛选条件，另外还包含分页和排序字段：page_size（每页数据条目数量）、page（页码）、order_by（排序字段）、sort（排序顺序：'asc'或者'desc‘）</td></tr></tbody></table></li> <li><p>返回数据说明</p> <table><thead><tr><th>名称</th> <th>类型</th> <th>必需</th> <th>默认值</th> <th>描述</th></tr></thead> <tbody><tr><td>list</td> <td>Array[Object]</td> <td>true</td> <td></td> <td>当前页数据，list中每个数据实体必须定义entity_id字段，作为唯一标识</td></tr> <tr><td>total</td> <td>Number</td> <td>true</td> <td></td> <td>数据条目总数</td></tr> <tr><td>currentPage</td> <td>Number</td> <td>true</td> <td></td> <td>当前页码</td></tr></tbody></table></li></ul></div> <footer class="page-edit"><!----> <!----></footer> <div class="page-nav"><p class="inner"><span class="prev">
+      ←
+      <a href="/api/sdk.html" class="prev">@xes/dh-catalyst</a></span> <!----></p></div> </main></div><div class="global-ui"></div></div>
+    <script src="/assets/js/app.69c5a9bd.js" defer></script><script src="/assets/js/2.8a6d69cc.js" defer></script><script src="/assets/js/7.52a55036.js" defer></script>
+  </body>
+</html>
