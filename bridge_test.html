@@ -1,0 +1,67 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="http://cdn.xes1v1.com/client/replay/plyr.css">
+    <style>body {
+        margin: 0;
+        background-color: black;
+      }
+      .container {
+        position: relative;
+      }
+      #video {
+        width: 100vw;
+        height: 100%;
+      }</style>
+  </head>
+  <body>
+    <button onclick="click1()">数据传输</button>
+    <button onclick="click2()">登录</button>
+  </body>
+  <script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
+  <script>// init vConsole
+var vConsole = new VConsole();
+console.log('Hello world');</script>
+  <script>var message = {
+  'data': {
+    'module': 'common',
+    'action': 'h5Params',
+    'path': 'DHBusinessTransferParamsPlugin',
+    'version': '1.0.0',
+    'describe': '给h5传参'
+  },
+  'plugin': 'common.h5Params',
+  'sdkVersion': '1.0.1'
+};
+
+var callback = function callback(response) {
+  alert(response);
+};
+
+function click1() {
+  if (window._dhbridge) window._dhbridge.invoke(message, callback);else alert('no bridge');
+}
+
+function login(args) {
+  var message = {
+    'data': {
+      'module': 'common',
+      'action': 'h5Params',
+      'path': 'DHBusinessLoginPlugin',
+      'version': '1.0.0',
+      'describe': '给h5传参'
+    },
+    'plugin': 'user.login',
+    'sdkVersion': '1.0.1'
+  };
+
+  var callback = function callback(response) {
+    returnValue(response, args);
+  };
+
+  if (window._dhbridge) window._dhbridge.invoke(message, callback);
+}
+
+function click2() {
+  login();
+}</script>
+  </html>
