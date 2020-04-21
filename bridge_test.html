@@ -1,68 +1,958 @@
 <html>
+  <link rel="stylesheet" href="http://cdn.xes1v1.com/client/replay/plyr.css" />
+  <style>
+    body {
+      margin: 0;
+      background-color: white;
+    }
+    .container {
+      position: relative;
+      width: 100vw;
+      height: 30vh;
+    }
+    #video {
+      width: 100vw;
+      height: 300px;
+    }
+    .video-title {
+      line-height: 7vw;
+      font-size: 5vw;
+      border-left: 1vw solid orange;
+      padding-left: 2vw;
+      margin: 0;
+      margin-top: 4vw;
+      margin-left: 4vw;
+    }
+    .video-info {
+      color: #999;
+      font-size: 3.5vw;
+      margin-left: 4vw;
+    }
+    .class-time {
+      margin-left: 2vw;
+    }
+  </style>
   <head>
-    <link rel="stylesheet" href="http://cdn.xes1v1.com/client/replay/plyr.css">
-    <style>body {
-        margin: 0;
-        background-color: black;
-      }
-      .container {
-        position: relative;
-      }
-      #video {
-        width: 100vw;
-        height: 100%;
-      }</style>
-  </head>
   <body>
-    <button onclick="click1()">数据传输</button>
-    <button onclick="click2()">登录</button>
+    <div class="container">
+      <video id="player" id="player" playsinline controls></video>
+    </div>
+    <p class="video-title">测试测试</p>
+    <p class="video-info">
+      <span class="subject">学科：化学</span>
+      <span class="class-time">上课时间：2020-03-20 15:33:33</span>
+    </p>
   </body>
-  <script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
-  <script>// init vConsole
-var vConsole = new VConsole();
-console.log('Hello world');</script>
-  <script>var message = {
-  'data': {
-    'module': 'common',
-    'action': 'h5Params',
-    'path': 'DHBusinessTransferParamsPlugin',
-    'version': '1.0.0',
-    'describe': '给h5传参'
-  },
-  'plugin': 'common.h5Params',
-  'sdkVersion': '1.0.1'
-};
+  <script src="http://cdn.xes1v1.com/client/replay/plyr.js"></script>
+  <script>
+    var player = new Plyr('#player', {
+      controls: [
+        'play',
+        'progress',
+        'current-time',
+        'mute',
+        'volume'
+      ],
+      invertTime: false,
+      fullscreen: {enabled: false, fallback: false}
+    });
 
-var callback = function callback(response) {
-  alert(response);
-  console.log('data------', response)
-};
+  </script>
+  <script>
+    function Uint8ArrayToString (fileData) {
+      var dataString = ""
+      for (var i = 0; i < fileData.length; i++) {
+        dataString += String.fromCharCode(fileData[i])
+      }
+      return dataString
+    }
 
-function click1() {
-  if (window._dhbridge) window._dhbridge.invoke(message, callback);else alert('no bridge');
-}
+    // 处理64位int
+    function getUint64(dataview, byteOffset, littleEndian) {
+      // 将 64 位整数值分成两份 32 位整数值
+      const left = dataview.getUint32(byteOffset, littleEndian)
+      const right = dataview.getUint32(byteOffset + 4, littleEndian)
 
-function login(args) {
-  var message = {
-    'data': {
-      'module': 'common',
-      'action': 'h5Params',
-      'path': 'DHBusinessLoginPlugin',
-      'version': '1.0.0',
-      'describe': '给h5传参'
-    },
-    'plugin': 'user.login',
-    'sdkVersion': '1.0.1'
-  };
+      // 合并两个 32 位整数值
+      const combined = littleEndian ? left + Math.pow(2, 32) * right : Math.pow(2, 32) * left + right
 
-  var callback = function callback(response) {
-    returnValue(response, args);
-  };
+      if (!Number.isSafeInteger(combined)) console.warn(combined, 'exceeds MAX_SAFE_INTEGER. Precision may be lost')
 
-  if (window._dhbridge) window._dhbridge.invoke(message, callback);
-}
+      return combined
+    }
 
-function click2() {
-  login();
-}</script>
-  </html>
+    window.ossRead = function ossRead (ossBlobList) {
+      let result = ossBlobList.map(blob => getOssList(blob))
+                              .sort((a, b) => { return a[0].actionItemTimeStamp - b[0].actionItemTimeStamp })
+                              .reduce((list, blob) => { return list.concat(blob) }, [])
+      return result
+    }
+
+    function getOssList (raw) {
+      let view = new DataView(raw)
+      let length = raw.byteLength
+
+      let offset = 0
+      let list = []
+      while (offset < length) {
+        let head = Uint8ArrayToString(new Uint8Array(raw, offset, 4)); offset += 4
+        let dataSize = view.getInt32(offset); offset += 4
+        let actionItemTimeStamp = getUint64(view, offset); offset += 8
+        let itemType = view.getInt32(offset); offset += 4
+        let actionDataSize = view.getInt32(offset); offset += 4
+        let actionData = raw.slice(offset, offset + actionDataSize); offset += actionDataSize
+        let obj = {head, dataSize, actionItemTimeStamp, itemType, actionDataSize, actionData}
+        obj = Object.assign(obj, {actionData: getOssData(obj)})
+        list.push(obj)
+      }
+      // console.log(list)
+      return list
+    }
+
+    function getOssData (obj) {
+      try {
+        switch (obj.itemType) {
+          case 8:
+            return getEnterClassData(obj.actionData)
+          case 10:
+            // console.log(obj)
+            return getChannelData(obj.actionData)
+          case 11:
+            return getHandWrittingData(obj.actionData)
+          default:
+            return {}
+        }
+      } catch (e) {
+        // console.log(e)
+        return {}
+      }
+    }
+
+    function getEnterClassData (data) {
+      let view = new DataView(data)
+      let offset = 0
+      let classInfoLen = view.getInt32(offset); offset += 4
+      let classInfo = Uint8ArrayToString(new Uint8Array(data, offset, classInfoLen)); offset += classInfoLen
+      let streamServiceNameLen = view.getInt32(offset); offset += 4
+      let streamServiceName = Uint8ArrayToString(new Uint8Array(data, offset, streamServiceNameLen)); offset += streamServiceNameLen
+      return {classInfo, streamServiceName}
+    }
+
+    // function getLeaveClassData (data) {
+    //   let view = new DataView(data)
+    //   let offset = 0
+    //   let reasonLen = view.getInt32(offset); offset += 4
+    //   let reason = Uint8ArrayToString(new Uint8Array(data, offset, reasonLen)); offset += reasonLen
+    //   return {reason}
+    // }
+
+    function getChannelData (data) {
+      let view = new DataView(data)
+
+      let offset = 0
+      let jsonLen = view.getInt32(offset); offset += 4
+      let json = Uint8ArrayToString(new Uint8Array(data, offset, jsonLen)); offset += jsonLen
+      return JSON.parse(json)
+    }
+
+    function getHandWrittingData (data) {
+      let view = new DataView(data)
+
+      let offset = 0
+      let dataLen = view.getInt32(offset); offset += 4
+      let packageLen = view.getInt32(offset); offset += 4
+      let headLen = view.getInt32(offset); offset += 4
+      let version = view.getInt16(offset); offset += 2
+      let timestamp = getUint64(view, offset); offset += 8
+      let actionType = view.getInt16(offset); offset += 2
+      let userIdLen = view.getInt32(offset); offset += 4
+      let userId = Uint8ArrayToString(new Uint8Array(data, offset, userIdLen)); offset += userIdLen
+      let coursewareIdLen = view.getInt32(offset); offset += 4
+      let coursewareId = Uint8ArrayToString(new Uint8Array(data, offset, coursewareIdLen)); offset += coursewareIdLen
+      let pageIdLen = view.getInt32(offset); offset += 4
+      let pageId = Uint8ArrayToString(new Uint8Array(data, offset, pageIdLen)); offset += pageIdLen
+      let msgId = view.getInt32(offset); offset += 4
+      let id = view.getInt32(offset); offset += 4
+      let bodyLength = view.getInt32(offset); offset += 4
+
+      if ([1, 2, 6].includes(actionType)) {
+        return {
+          packageLen,
+          headLen,
+          timestamp,
+          version,
+          actionType,
+          userIdLen,
+          userId,
+          coursewareIdLen,
+          coursewareId,
+          pageId,
+          msgId,
+          id,
+          bodyLength
+        }
+      } else if (actionType === 5) {
+        // 清除图形
+        let idListLen = view.getInt32(offset); offset += 4
+        let idList = []
+        for (let i = 0; i < idListLen; i++) {
+          idList.push(view.getInt32(offset)); offset += 4
+        }
+        return {
+          packageLen,
+          headLen,
+          timestamp,
+          version,
+          actionType,
+          userIdLen,
+          userId,
+          coursewareIdLen,
+          coursewareId,
+          pageId,
+          msgId,
+          id,
+          idList
+        }
+      } else {
+        let graphicsType = view.getInt16(offset); offset += 2
+        let width = view.getInt32(offset); offset += 4
+        let height = view.getInt32(offset); offset += 4
+        let lineWidth = view.getInt16(offset); offset += 2
+        let dashType = view.getInt16(offset); offset += 2
+        let color = new Uint8Array(data, offset, 4); offset += 4
+        let action = view.getInt16(offset); offset += 2
+        let pointDataLen = view.getInt32(offset); offset += 4
+        let pointData = []
+        for (let i = 0; i < pointDataLen; i++) {
+          let point = [0, 0]
+          point[0] = view.getInt32(offset); offset += 4
+          point[1] = view.getInt32(offset); offset += 4
+          pointData.push(point)
+        }
+        let fontExtraObj = {}
+        if (graphicsType === 11) {
+          fontExtraObj.textLen = view.getInt32(offset); offset += 4
+          let text = decodeURI(
+            Array.from(new Uint8Array(data, offset, fontExtraObj.textLen))
+            .map(item => '%' + item.toString(16))
+            .join('')
+          )
+          fontExtraObj.text = text; offset += fontExtraObj.textLen
+          fontExtraObj.fontSize = view.getInt16(offset); offset += 2
+          fontExtraObj.contentY = view.getInt16(offset); offset += 2
+        }
+        return (Object.assign({
+          packageLen,
+          headLen,
+          timestamp,
+          version,
+          actionType,
+          userIdLen,
+          userId,
+          coursewareIdLen,
+          coursewareId,
+          pageId,
+          msgId,
+          id,
+          graphicsType,
+          width,
+          height,
+          lineWidth,
+          dashType,
+          color,
+          action,
+          pointDataLen,
+          pointData
+        }, fontExtraObj))
+      }
+    }
+  </script>
+  <script>
+    window.HwPlayer = function (video, ossBlobList, videoStartTime) {
+      this.video = video
+      this.ossList = ossRead(ossBlobList).filter(item => [10, 11].includes(item.itemType))
+      this.handwrittingPlayData = this.ossList.reduce((prev, item) => {
+        if (!Object.keys(item.actionData).length) return prev
+        let data = Object.assign(item.actionData, {itemType: item.itemType, deleted: false})
+        if (!data.timestamp) data.timestamp = data.timeStamp
+        return prev.concat([data])
+      }, [])
+      // console.log(this.handwrittingPlayData)
+      this.pageList = []
+      this.startTime = videoStartTime
+      this.curTime = this.startTime
+      this.curFrame = 0
+      this.timer = 0
+      this.speedRate = 1
+      this.canvas = null
+      this.canvasList = []
+      this.page = null
+      this.backendTimeCache = 0
+      this.keyFrameCache = []
+      this.deletedGraphList = []
+      this.updatedGraphList = []
+      this.undoneGraphList = []
+      this.undoRedoUsedList = []
+
+      // 铺画布
+      this.init = () => {
+        this.canvasContainer = document.createElement('div')
+        this.canvasContainer.style.position = 'absolute'
+        this.canvasContainer.style.top = video.offsetTop + 'px'
+        this.canvasContainer.style.left = video.offsetLeft + 'px'
+        this.canvasContainer.style.pointerEvents = 'none'
+        this.canvasContainer.style.height = video.clientHeight + 'px'
+        this.canvasContainer.style.width = video.clientWidth + 'px'
+        this.canvasContainer.style.overflow = 'hidden'
+        video.parentNode.insertBefore(this.canvasContainer, this.video.nextSibling)
+        this.gotoPage()
+      }
+      // 切换后台时计时器停止，需要在切回来时将期间经过时间加到ts上
+      this.onVisibilityChange = () => {
+        if (document.visibilityState === 'hidden') {
+          this.backendTimeCache = Date.now()
+        } else {
+          this.curTime = this.curTime + (Date.now() - this.backendTimeCache)
+        }
+      }
+
+      // 视频初始化
+      video.addEventListener('loadedmetadata', () => {
+        this.canvasContainer.style.height = video.clientHeight + 'px'
+        this.canvasContainer.style.width = video.clientWidth + 'px'
+      })
+
+      // 播放
+      video.addEventListener('playing', () => {
+        console.log('play')
+        this.play(this.curTime - this.startTime)
+      })
+
+      // 暂停
+      video.addEventListener('pause', () => {
+        console.log('pause')
+        this.stop()
+      })
+
+      // 速度变化
+      video.addEventListener('ratechange', e => {
+        this.speedRate = video.playbackRate
+      })
+
+      // seeking
+      video.addEventListener('seeking', () => {
+        console.log('pause')
+        this.stop()
+      })
+
+      // seeked
+      video.addEventListener('seeked', () => {
+        let lastCurTime = this.curTime
+        this.curTime = this.startTime + this.video.currentTime * 1000
+        if (this.curTime < lastCurTime) {
+          this.curFrame = 0
+          this.deletedGraphList.forEach(graph => {
+            this.handwrittingPlayData[graph.index].deleted = false
+          })
+          this.deletedGraphList = []
+
+          this.updatedGraphList.forEach(graph => {
+            this.handwrittingPlayData[graph.index].actionType = 3
+          })
+          this.updatedGraphList = []
+
+          Object.keys(this.undoneGraphList).forEach(key => {
+            this.undoneGraphList[key].forEach(list => {
+              list.forEach(index => {
+                this.handwrittingPlayData[index].undone = false
+              })
+            })
+          })
+          this.undoneGraphList = []
+
+          this.undoRedoUsedList.forEach(graph => {
+            this.handwrittingPlayData[graph.index].used = false
+          })
+          this.undoRedoUsedList = []
+          this.canvasList.forEach(canvas => {
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+          })
+          this.gotoPage()
+        }
+        this.playFunc()
+      })
+
+      this.playFunc = () => {
+        // console.log(this.handwrittingPlayData[this.curFrame].itemType, this.handwrittingPlayData[this.curFrame])
+        this.curTime = this.curTime + (10 * this.speedRate)
+        for (; (this.handwrittingPlayData[this.curFrame] || {}).timestamp <= this.curTime; this.curFrame++) {
+          if (!this.handwrittingPlayData[this.curFrame]) {
+            this.stop()
+          } else if (
+            this.handwrittingPlayData[this.curFrame].deleted ||
+            this.handwrittingPlayData[this.curFrame].undone ||
+            this.handwrittingPlayData[this.curFrame].used
+          ) {
+            continue
+          } else if (this.handwrittingPlayData[this.curFrame].itemType === 10) {
+            // 读取到信道数据
+            console.log('irc', this.handwrittingPlayData[this.curFrame])
+            console.log(this.page)
+            if (
+              this.page &&
+              this.page.courseWare === this.handwrittingPlayData[this.curFrame].coursewareId &&
+              this.page.pageId === this.handwrittingPlayData[this.curFrame].pageId
+            ) {
+              // 长画布滚动
+              // console.log('scroll', this.handwrittingPlayData[this.curFrame])
+              this.page.canvasList.forEach(canvas => {
+                let scale = Number(canvas.getAttribute('data-scale')) || 1
+                let t = (canvas.height * scale) / 800
+                canvas.style.top = (-1 * this.handwrittingPlayData[this.curFrame].yOffset * t) + 'px'
+              })
+            } else {
+              // 翻页
+              this.gotoPage(this.handwrittingPlayData[this.curFrame].coursewareId, this.handwrittingPlayData[this.curFrame].pageId)
+            }
+          } else if (this.handwrittingPlayData[this.curFrame].itemType === 11) {
+            // 读取到涂鸦数据
+            if (this.handwrittingPlayData[this.curFrame].actionType === 2) {
+              // console.log('undo', this.handwrittingPlayData[this.curFrame])
+              // 撤销
+              // 获取同一个用户上一次不是撤销，重做的涂鸦抬笔数据
+              let lastDataFrame = -1
+              let undoDataFramePack = []
+              for (let i = this.curFrame; i >= 0; i--) {
+                if (
+                  this.handwrittingPlayData[i].itemType !== 10 &&
+                  [4].includes(this.handwrittingPlayData[i].actionType) &&
+                  this.handwrittingPlayData[i].action === 2 &&
+                  this.handwrittingPlayData[i].userId === this.handwrittingPlayData[this.curFrame].userId &&
+                  !this.handwrittingPlayData[i].undone
+                ) {
+                  lastDataFrame = i
+                  break
+                }
+              }
+              // 如果获取了抬笔数据，则从该数据开始，获取到上一个起笔数据，将中间遍历过的涂鸦数据都放入撤销组里
+              if (lastDataFrame > 0) {
+                for (let i = lastDataFrame; i >= 0; i--) {
+                  if (
+                    this.handwrittingPlayData[i].itemType !== 10 &&
+                    [4].includes(this.handwrittingPlayData[i].actionType) &&
+                    this.handwrittingPlayData[i].userId === this.handwrittingPlayData[this.curFrame].userId &&
+                    !this.handwrittingPlayData[i].undone
+                  ) {
+                    undoDataFramePack.push(i)
+                    console.log('undo', this.handwrittingPlayData[i])
+                    if (this.handwrittingPlayData[i].action === 0) break
+                  }
+                }
+              }
+              if (undoDataFramePack.length > 0) {
+                // 循环标记undo
+                // console.log('undo', this.handwrittingPlayData[lastDataFrame])
+                undoDataFramePack.forEach(frame => {
+                  this.handwrittingPlayData[frame].undone = true
+                })
+                // 给当前undone列表当前用户下添加undoDataFramePack
+                if (!this.undoneGraphList[this.handwrittingPlayData[this.curFrame].userId]) {
+                  this.undoneGraphList[this.handwrittingPlayData[this.curFrame].userId] = []
+                }
+                this.undoneGraphList[this.handwrittingPlayData[this.curFrame].userId].push(undoDataFramePack)
+                // 标记当前undo操作为已使用
+                this.handwrittingPlayData[this.curFrame].used = true
+                // 当前undo操作放入当前已使用操作列表
+                this.undoRedoUsedList.push({index: this.curFrame, data: this.handwrittingPlayData[this.curFrame]})
+                // 重绘
+                this.curFrame = 0
+                this.updatedGraphList.forEach(graph => {
+                  this.handwrittingPlayData[graph.index].actionType = 3
+                })
+                this.deletedGraphList.forEach(graph => {
+                  this.handwrittingPlayData[graph.index].deleted = false
+                })
+                this.deletedGraphList = []
+                this.updatedGraphList = []
+                this.canvasList.forEach(canvas => {
+                  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+                })
+                this.gotoPage()
+              }
+            } else if (this.handwrittingPlayData[this.curFrame].actionType === 1) {
+              // 重做
+              if (this.undoneGraphList[this.handwrittingPlayData[this.curFrame].userId] && this.undoneGraphList[this.handwrittingPlayData[this.curFrame].userId].length) {
+                // 从undone列表里当前用户下pop一个包
+                let lastUndoneFramePack = this.undoneGraphList[this.handwrittingPlayData[this.curFrame].userId].pop().index
+                // 清除包里所有元素的undone状态
+                lastUndoneFramePack.forEach(frame => { this.handwrittingPlayData[frame].undone = false })
+                // 标记当前redo状态为已使用
+                this.handwrittingPlayData[this.curFrame].used = true
+                // 当前redo状态置入已使用操作列表
+                this.undoRedoUsedList.push({index: this.curFrame, data: this.handwrittingPlayData[this.curFrame]})
+                // 重绘
+                this.updatedGraphList.forEach(graph => {
+                  this.handwrittingPlayData[graph.index].actionType = 3
+                })
+                this.deletedGraphList.forEach(graph => {
+                  this.handwrittingPlayData[graph.index].deleted = false
+                })
+                this.curFrame = 0
+                this.deletedGraphList = []
+                this.updatedGraphList = []
+                this.canvasList.forEach(canvas => {
+                  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+                })
+                this.gotoPage()
+              }
+            } else if (this.handwrittingPlayData[this.curFrame].actionType === 3) {
+              // 移动图形
+              // 相当于把该帧改为draw， 然后清除原图形
+              // console.log('update', this.handwrittingPlayData[this.curFrame])
+              this.updatedGraphList.push({index: this.curFrame, data: this.handwrittingPlayData[this.curFrame]})
+              this.handwrittingPlayData[this.curFrame].actionType = 4
+              this.deleteGraph([this.handwrittingPlayData[this.curFrame].id])
+              break
+            } else if (this.handwrittingPlayData[this.curFrame].actionType === 5) {
+              // 清除图形
+              // console.log('clearimg', this.handwrittingPlayData[this.curFrame])
+              this.deletedGraphList.push({index: this.curFrame, data: this.handwrittingPlayData[this.curFrame]})
+              this.handwrittingPlayData[this.curFrame].deleted = true
+              this.deleteGraph(this.handwrittingPlayData[this.curFrame].idList)
+              break
+            } else if (this.handwrittingPlayData[this.curFrame].actionType === 6) {
+              // 清屏
+              this.page.canvasList.forEach(canvas => {
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+              })
+            } else {
+              // 绘图
+              let curCanvas = this.getCurCanvas(this.handwrittingPlayData[this.curFrame])
+              // console.log(curCanvas, this.handwrittingPlayData[this.curFrame])
+              draw(curCanvas, this.handwrittingPlayData[this.curFrame])
+            }
+          } else {
+            console.log(1)
+          }
+        }
+      }
+
+      this.play = (startOffset = 0) => {
+        this.curTime = this.startTime + startOffset
+
+        // 绑定切换后台时事件
+        document.addEventListener('visibilitychange', this.onVisibilityChange)
+
+        // 启动动画播放计时器
+        this.timer = setInterval(this.playFunc, 10)
+      }
+
+      this.stop = () => {
+        clearInterval(this.timer)
+        document.removeEventListener('visibilitychange', this.onVisibilityChange)
+        console.log('stop')
+      }
+
+      this.createPage = (courseWare, pageId) => {
+        let page = {courseWare, pageId, canvasList: []}
+        this.pageList.push(page)
+        return page
+      }
+
+      this.gotoPage = (courseWare = 'defaultPage', pageId = '1') => {
+        if (this.page) {
+          this.page.canvasList.forEach(canvas => { canvas.style.visibility = 'hidden' })
+        }
+        let curPage = this.pageList.find(page => {
+          return page.courseWare === courseWare && page.pageId === pageId
+        })
+        if (!curPage) curPage = this.createPage(courseWare, pageId)
+        curPage.canvasList.forEach(canvas => { canvas.style.visibility = 'visible' })
+        this.page = curPage
+      }
+
+      this.createCanvas = (handwrittingData) => {
+        let type = ''
+        if ([1, 2].includes(handwrittingData.graphicsType)) type = 'hw'
+        else type = 'shape'
+        let canvas = document.createElement('canvas')
+        canvas.width = handwrittingData.width
+        canvas.height = handwrittingData.height
+        canvas.style.transformOrigin = 'top left'
+        canvas.setAttribute('data-courseWare', handwrittingData.coursewareId)
+        canvas.setAttribute('data-pageid', handwrittingData.pageId)
+        canvas.setAttribute('data-type', type)
+        canvas.setAttribute('data-userid', handwrittingData.userId)
+        canvas.style.position = 'absolute'
+        let ratio = this.video.videoHeight / this.video.videoWidth
+        let fitHeight = this.video.clientWidth * ratio
+        let fitWidth = this.video.clientHeight * (1 / ratio)
+        canvas.style.top = fitHeight < this.video.clientHeight ? (this.video.clientWidth - fitHeight) / 2 : 0
+        canvas.style.left = fitWidth < this.video.clientWidth ? (this.video.clientWidth - fitWidth) / 2 : 0
+        canvas.style.transform = 'scale(' + ((960 / canvas.width) * (fitWidth / 1280)) + ')'
+        canvas.setAttribute('data-scale', (960 / canvas.width) * (fitWidth / 1280))
+        return canvas
+      }
+
+      this.getCurCanvas = (handwrittingData) => {
+        let type = ''
+        if ([1, 2].includes(handwrittingData.graphicsType)) type = 'hw'
+        else type = 'shape'
+        if (
+          this.canvas &&
+          this.canvas.getAttribute('data-courseWare') === handwrittingData.coursewareId &&
+          this.canvas.getAttribute('data-pageid') === handwrittingData.pageId &&
+          this.canvas.getAttribute('data-type') === type &&
+          this.canvas.getAttribute('data-userid') === handwrittingData.userId) {
+          return this.canvas
+        }
+        let canvas = this.canvasList.find(canvas => {
+          return canvas.getAttribute('data-courseWare') === handwrittingData.coursewareId &&
+              canvas.getAttribute('data-pageid') === handwrittingData.pageId &&
+              canvas.getAttribute('data-type') === type &&
+              canvas.getAttribute('data-userid') === handwrittingData.userId
+        })
+        // console.log('find', canvas, canvas.getAttribute('data-type') === type, canvas.getAttribute('data-userid') === handwrittingData.userId)
+        if (!canvas) {
+          canvas = this.createCanvas(handwrittingData)
+          this.canvasList.push(canvas)
+          let canvasPage = this.pageList.find(page => {
+            return page.courseWare === handwrittingData.coursewareId && Number(page.pageId) === Number(handwrittingData.pageId)
+          })
+          if (!canvasPage) canvasPage = this.createPage(handwrittingData.coursewareId, handwrittingData.pageId)
+          canvasPage.canvasList.push(canvas)
+          if (canvasPage.courseWare !== this.page.courseWare) canvas.style.visibility = 'hidden'
+          this.canvasContainer.appendChild(canvas)
+        }
+        this.canvas = canvas
+        return canvas
+      }
+
+      this.deleteGraph = (graphIdList) => {
+        let graphList = []
+        for (let i in this.handwrittingPlayData) {
+          if (i >= this.curFrame) break
+          if (this.handwrittingPlayData[i].graphicsType > 2 && graphIdList.includes(this.handwrittingPlayData[i].id)) {
+            graphList.push({index: i, data: this.handwrittingPlayData[i]})
+            this.deletedGraphList.push({index: i, data: this.handwrittingPlayData[i]})
+            this.handwrittingPlayData[i].deleted = true
+          }
+        }
+        if (graphList.length) {
+          this.curFrame = 0
+          this.canvasList.forEach(canvas => {
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+          })
+          this.gotoPage()
+        }
+      }
+
+      this.destroy = () => {
+        clearInterval(this.timer)
+        this.canvasContainer.parentNode.removeChild(this.canvasContainer)
+      }
+    }
+
+    function draw (canvas, handwrittingData) {
+      // 配置画笔
+      let ctx = canvas.getContext('2d')
+      ctx.strokeStyle = ctx.fillStyle = 'rgb(' + handwrittingData.color[1] + ',' + handwrittingData.color[2] + ',' + handwrittingData.color[3] + ')'
+      ctx.lineWidth = handwrittingData.lineWidth
+      // 虚线初始设置
+      if (handwrittingData.graphicsType === 12) {
+        ctx.setLineDash([10, 10])
+      } else {
+        ctx.setLineDash([])
+      }
+
+      // 橡皮初始设置
+      if (handwrittingData.graphicsType === 2) {
+        ctx.strokeStyle = 'cyan'
+        ctx.lineWidth = handwrittingData.lineWidth * 10
+        ctx.globalCompositeOperation = 'destination-out'
+      } else {
+        ctx.globalCompositeOperation = 'source-over'
+      }
+
+      // 判断图形属性
+      switch (handwrittingData.graphicsType) {
+        // 笔 & 橡皮
+        case 1:
+        case 2:
+          // 判断笔状态
+          switch (handwrittingData.action) {
+            // 落笔
+            case 0:
+              ctx.beginPath()
+              ctx.moveTo(handwrittingData.pointData[0][0], handwrittingData.pointData[0][1])
+              break
+            // 绘制/擦除中
+            case 1:
+              for (let i = 0; i < handwrittingData.pointData.length; i++) {
+                ctx.lineTo(handwrittingData.pointData[i][0], handwrittingData.pointData[i][1])
+              }
+              break
+            // 抬笔
+            case 2:
+              for (let i = 0; i < handwrittingData.pointData.length; i++) {
+                ctx.lineTo(handwrittingData.pointData[i][0], handwrittingData.pointData[i][1])
+              }
+              ctx.stroke()
+              break
+          }
+          break
+        // 直线
+        case 3:
+          ctx.beginPath()
+          ctx.moveTo(handwrittingData.pointData[0][0], handwrittingData.pointData[0][1])
+          ctx.lineTo(handwrittingData.pointData[1][0], handwrittingData.pointData[1][1])
+          ctx.stroke()
+          break
+        // 单向箭头
+        case 4:
+          ctx.beginPath()
+          ctx.moveTo(handwrittingData.pointData[0][0], handwrittingData.pointData[0][1])
+          ctx.lineTo(handwrittingData.pointData[1][0], handwrittingData.pointData[1][1])
+          ctx.stroke()
+          drawArrow(ctx, handwrittingData.pointData[0], handwrittingData.pointData[1])
+          break
+        // 双向箭头
+        case 5:
+          ctx.beginPath()
+          ctx.moveTo(handwrittingData.pointData[0][0], handwrittingData.pointData[0][1])
+          ctx.lineTo(handwrittingData.pointData[1][0], handwrittingData.pointData[1][1])
+          ctx.stroke()
+          drawArrow(ctx, handwrittingData.pointData[0], handwrittingData.pointData[1], true)
+          break
+        // 三角形，平行四边形，多边形
+        case 6:
+        case 9:
+        case 10:
+          ctx.beginPath()
+          ctx.moveTo(handwrittingData.pointData[0][0], handwrittingData.pointData[0][1])
+          for (let i = 1; i < handwrittingData.pointData.length; i++) {
+            ctx.lineTo(handwrittingData.pointData[i][0], handwrittingData.pointData[i][1])
+          }
+          ctx.closePath()
+          ctx.stroke()
+          break
+        // 矩形
+        case 7:
+          ctx.beginPath()
+          ctx.rect(
+            handwrittingData.pointData[0][0],
+            handwrittingData.pointData[0][1],
+            handwrittingData.pointData[1][0] - handwrittingData.pointData[0][0],
+            handwrittingData.pointData[1][1] - handwrittingData.pointData[0][1]
+          )
+          ctx.closePath()
+          ctx.stroke()
+          break
+        // 椭圆
+        case 8:
+          ctx.beginPath()
+          ctx.ellipse(
+            handwrittingData.pointData[0][0],
+            handwrittingData.pointData[0][1],
+            Math.abs(handwrittingData.pointData[1][0] - handwrittingData.pointData[0][0]),
+            Math.abs(handwrittingData.pointData[1][1] - handwrittingData.pointData[0][1]),
+            0,
+            0,
+            2 * Math.PI
+          )
+          ctx.closePath()
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.ellipse(
+            handwrittingData.pointData[0][0],
+            handwrittingData.pointData[0][1],
+            4,
+            4,
+            0,
+            0,
+            2 * Math.PI
+          )
+          ctx.closePath()
+          ctx.fill()
+          break
+        // 文本
+        case 11:
+          ctx.save()
+          ctx.beginPath()
+          ctx.rect(
+            handwrittingData.pointData[0][0],
+            handwrittingData.pointData[0][1],
+            handwrittingData.pointData[1][0] - handwrittingData.pointData[0][0],
+            handwrittingData.pointData[1][1] - handwrittingData.pointData[0][1]
+          )
+          ctx.clip()
+          ctx.font = handwrittingData.fontSize + "px Microsoft YaHei"
+          ctx.textBaseline = "top"
+          ctx.wrapText(
+            handwrittingData.text,
+            handwrittingData.pointData[0][0],
+            handwrittingData.pointData[0][1] - handwrittingData.contentY,
+            handwrittingData.pointData[1][0] - handwrittingData.pointData[0][0],
+            handwrittingData.fontSize * 1.15
+          )
+          ctx.restore()
+          break
+        // 虚线
+        case 12:
+          ctx.beginPath()
+          ctx.moveTo(handwrittingData.pointData[0][0], handwrittingData.pointData[0][1])
+          ctx.lineTo(handwrittingData.pointData[1][0], handwrittingData.pointData[1][1])
+          ctx.stroke()
+          break
+      }
+    }
+
+    function drawArrow (ctx, start, end, isDoubleArrow = false) {
+      let l = 20
+      ctx.beginPath()
+      ctx.moveTo(end[0], end[1])
+      let k = (end[1] - start[1]) / (end[0] - start[0])
+      let endDeg = Math.atan(k)
+      console.log(k, endDeg)
+      let endDeg1 = endDeg + Math.PI / 6
+      let end1 = [end[0] - Math.cos(endDeg1) * l, end[1] - Math.sin(endDeg1) * l]
+      ctx.lineTo(end1[0], end1[1])
+      let endDeg2 = endDeg - Math.PI / 6
+      let end2 = [end[0] - Math.cos(endDeg2) * l, end[1] - Math.sin(endDeg2) * l]
+      ctx.lineTo(end2[0], end2[1])
+      ctx.fill()
+
+      if (isDoubleArrow) {
+        ctx.beginPath()
+        ctx.moveTo(start[0], start[1])
+        let startDeg = Math.atan(k)
+        let startDeg1 = startDeg + Math.PI / 6
+        let start1 = [start[0] + Math.cos(startDeg1) * l, start[1] + Math.sin(startDeg1) * l]
+        ctx.lineTo(start1[0], start1[1])
+        let startDeg2 = startDeg - Math.PI / 6
+        let start2 = [start[0] + Math.cos(startDeg2) * l, start[1] + Math.sin(startDeg2) * l]
+        ctx.lineTo(start2[0], start2[1])
+        ctx.fill()
+      }
+    }
+
+    /* eslint-disable */
+    CanvasRenderingContext2D.prototype.wrapText = function (text, x, y, maxWidth, lineHeight) {
+      if (typeof text != 'string' || typeof x != 'number' || typeof y != 'number') {
+          return;
+      }
+      
+      var context = this;
+      var canvas = context.canvas;
+      
+      if (typeof maxWidth == 'undefined') {
+          maxWidth = (canvas && canvas.width) || 300;
+      }
+      if (typeof lineHeight == 'undefined') {
+          lineHeight = (canvas && parseInt(window.getComputedStyle(canvas).lineHeight)) || parseInt(window.getComputedStyle(document.body).lineHeight);
+      }
+      
+      // 字符分隔为数组
+      var arrText = text.split('');
+      var line = '';
+      
+      for (var n = 0; n < arrText.length; n++) {
+          var testLine = line + arrText[n];
+          var metrics = context.measureText(testLine);
+          var testWidth = metrics.width;
+          if (testWidth > maxWidth && n > 0) {
+              context.fillText(line, x, y);
+              line = arrText[n];
+              y += lineHeight;
+          } else {
+              line = testLine;
+          }
+      }
+      context.fillText(line, x, y);
+    };
+  </script>
+  <script>
+    var video = document.getElementById('player')
+    var handWrittingList = []
+    window.HW_canPlay = false
+
+    function playData (fileList, videoStartTime) {
+      if (!fileList.length) {
+        window.HW_canPlay = true
+        return
+      }
+      fileList.forEach(item => {
+        let reader = new FileReader()
+        reader.addEventListener("loadend", function() {
+          handWrittingList.push(reader.result)
+          if (handWrittingList.length === fileList.length) {
+            let player = new HwPlayer(video, handWrittingList, videoStartTime)
+            player.init()
+            window.HW_canPlay = true
+          }
+        })
+        let oReq = new XMLHttpRequest()
+
+        oReq.open('GET', item.url, true)
+        oReq.responseType = 'blob'
+        oReq.onload = function (oEvent) {
+          let blob = oReq.response
+          reader.readAsArrayBuffer(blob)
+        }
+        oReq.send()
+      })
+    }
+
+    var message = {
+      'data': {
+        'module': 'common',
+        'action': 'h5Params',
+        'path': 'DHBusinessTransferParamsPlugin',
+        'version': '1.0.0',
+        'describe': '给h5传参'
+      },
+      'plugin': 'common.h5Params',
+      'sdkVersion': '1.0.1'
+    };
+
+    window.onHWDataLoad = function () {
+      if (window._dhbridge) window._dhbridge.invoke(message, window.onHWCallback)
+      else {
+        let timer = setInterval(() => {
+          if (window._dhbridge) {
+            window._dhbridge.invoke(message, window.onHWCallback)
+            clearInterval(timer)
+          }
+        })
+      }
+    }
+
+    window.onHWCallback = function (response) {
+      window.HW_fileList = response.replayData
+      window.HW_videoStartTime = response.videoTime[0].start_time
+      window.HW_videoSrc = response.playbackUrl
+      video.src = window.HW_videoSrc
+      playData(window.HW_fileList, window.HW_videoStartTime)
+
+      // 修改页面展示
+      document.querySelector('video-title').innerHTML = response.classTitle
+      document.querySelector('subject').innerHTML = response.subjectName
+      document.querySelector('class-time').innerHTML = response.classTime
+    }
+
+    window.HW_play = function() {
+      if (!window.HW_fileList.length) video.play()
+      else {
+        let timer = setInterval(() => {
+          if (window.HW_canPlay) {
+            video.play()
+            clearInterval(timer)
+          }
+        }, 500)
+      }
+    }
+
+    // window.onHWDataLoad()
+    // window.HW_play()
+  </script> 
+</html>
