@@ -43,6 +43,7 @@
       <span class="class-time">上课时间：2020-03-20 15:33:33</span>
     </p>
   </body>
+  <script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
   <script src="http://cdn.xes1v1.com/client/replay/plyr.js"></script>
   <script>
     var player = new Plyr('#player', {
@@ -931,6 +932,7 @@
       window.HW_fileList = response.replayData
       window.HW_videoStartTime = response.videoTime[0].start_time
       window.HW_videoSrc = response.playbackUrl
+      console.log('videourl',  window.HW_videoSrc, response.playbackUrl, response)
       video.src = window.HW_videoSrc
       playData(window.HW_fileList, window.HW_videoStartTime)
 
